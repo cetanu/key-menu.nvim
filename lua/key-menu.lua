@@ -609,6 +609,7 @@ local function open_window(prefix)
 
   add_default_mappings = function()
     vim.keymap.set('n', '<Esc>', close_window, {buffer=buf, nowait=true})
+    vim.keymap.set('n', '<C-[>', close_window, {buffer=buf, nowait=true})
     vim.keymap.set('n', '<C-c>', close_window, {buffer=buf, nowait=true})
     vim.keymap.set('n', '<BS>', backspace, {buffer=buf, nowait=true})
   end
