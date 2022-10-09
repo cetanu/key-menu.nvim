@@ -612,6 +612,7 @@ local function open_window(prefix)
     vim.keymap.set('n', '<C-[>', close_window, {buffer=buf, nowait=true})
     vim.keymap.set('n', '<C-c>', close_window, {buffer=buf, nowait=true})
     vim.keymap.set('n', '<BS>', backspace, {buffer=buf, nowait=true})
+    vim.keymap.set('n', '<C-h>', backspace, {buffer=buf, nowait=true})
   end
 
   vim.api.nvim_create_autocmd("BufLeave", {buffer=buf, callback=close_window})
