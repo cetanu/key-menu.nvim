@@ -193,7 +193,7 @@ end
 
 local function _set_to_list(set)
   local result = {}
-  for key, _true in pairs(set) do
+  for key, _ in pairs(set) do
     table.insert(result, key)
   end
   return result
@@ -343,7 +343,7 @@ local function shadow(old_mappings, new_mappings)
   end
   local result = vim.deepcopy(old_mappings)
   result = vim.tbl_filter(function(m) return not new_lhss[m.lhs] end, result)
-  vim.list_extend(result, new_mappings)
+  vim.list_extend(result, new_mappings, 1, #new_mappings)
   return result
 end
 
@@ -361,6 +361,10 @@ local function open_window(prefix)
   end
 
   local buf = vim.api.nvim_create_buf(false, true)
+
+  -- Set the file type, so it can be ignored by other modules as needed.
+  vim.api.nvim_buf_set_option(buf, 'filetype', 'keymenu')
+
   shadow_all_global_mappings(buf)
 
   local horizontal_padding = 1
@@ -517,10 +521,12 @@ local function open_window(prefix)
     if anchor == 'NW' then
       vim.api.nvim_buf_set_lines(buf, 0, 1, false, {pretty_keystrokes_so_far})
       vim.api.nvim_buf_set_lines(buf, 1, 2, false, {string.rep('─', width)})
+      ---@diagnostic disable-next-line: param-type-mismatch,redundant-parameter
       vim.fn.setcursorcharpos(1, cursor_col)
     else
       vim.api.nvim_buf_set_lines(buf, -2, -1, false, {pretty_keystrokes_so_far})
       vim.api.nvim_buf_set_lines(buf, -3, -2, false, {string.rep('─', width)})
+      ---@diagnostic disable-next-line: param-type-mismatch,redundant-parameter
       vim.fn.setcursorcharpos(num_rows + 2, cursor_col)
     end
   end
@@ -531,7 +537,7 @@ local function open_window(prefix)
   local add_default_mappings = nil
 
   local full_update = function()
-    -- Call this after the statre (prefix, mappings) has been updated, or just to do a full redraw.
+    -- Call this after the state (prefix, mappings) has been updated, or just to do a full redraw.
 
     if remove_local_mappings then
       remove_local_mappings()
