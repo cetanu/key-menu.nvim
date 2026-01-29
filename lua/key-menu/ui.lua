@@ -77,7 +77,7 @@ function M.open_window(prefix)
     end
   end
 
-  local all_mappings = keys.get_builtin_keymap(mode)
+  local all_mappings = {}
   all_mappings = keys.shadow(all_mappings, keys.normalize_keymap(vim.api.nvim_get_keymap(mode)))
   all_mappings = keys.shadow(all_mappings, keys.normalize_keymap(orig_buf_keymap))
   all_mappings = vim.tbl_filter(keys.is_not_nop, all_mappings)
