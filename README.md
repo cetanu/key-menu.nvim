@@ -1,133 +1,158 @@
 # key-menu.nvim
 
-![demo](https://user-images.githubusercontent.com/5308024/169894329-7e14d3b1-fa9e-4326-92f2-de82d3b0096e.gif)
+**key-menu.nvim** is a minimal, unobtrusive key mapping hint window for Neovim.
+It pops up next to your cursor, displaying available key bindings and their
+descriptions, helping you discover and remember your configuration without
+breaking your flow.
 
-## Currently unmaintained
+## Features
 
-I (the original author) no longer maintain this plugin and no further development is planned. If you'd like to take over ownership, let me know.
+*   Key menu appears next to your cursor, minimizing eye movement.
+*   Set your keymaps using the standard `vim.keymap.set` and they'll be detected
+*   Add descriptions for groups of mappings (e.g., `<leader>g` for Git).
 
-## Highlights
+## Installation
 
-- Just works. Lightweight and simple. Minimal configuration.
-- The hint window pops up next to your cursor, and uses as little screen real estate as possible.
-- No custom syntax for creating mappings – just use Neovim's standard, built-in `vim.keymap.set`.
+### [lazy.nvim](https://github.com/folke/lazy.nvim)
 
-## Setup and usage
-
-Install key-menu.nvim using [vim-plug](https://github.com/junegunn/vim-plug) with `Plug 'linty-org/key-menu.nvim'`, or use your favorite Neovim plugin manager. Requires at least Neovim 0.7.
-
-Sample configuration (in `init.lua`):
 ```lua
--- This Vim setting controls the delay before the popup appears. The way it
--- works is, if you have mappings for, say, the key "a" and the key sequence
--- "ab", if you type "a", then Vim waits timeoutlen, and if you don't press
--- another key before that amount of time, then the "a" mapping is executed, but
--- if you press "b" before timeoutlen, then the "ab" mapping is executed.
+{
+  "cetanu/key-menu.nvim",
+  config = function()
+    require("key-menu").setup({
+      -- Optional configuration
+    })
+  end,
+}
+```
+
+### [packer.nvim](https://github.com/wbthomason/packer.nvim)
+
+```lua
+use({
+  "cetanu/key-menu.nvim",
+  config = function()
+    require("key-menu").setup()
+  end,
+})
+```
+
+### [vim-plug](https://github.com/junegunn/vim-plug)
+
+```vim
+Plug 'cetanu/key-menu.nvim'
+
+" After plug#end()
+lua require("key-menu").setup()
+```
+
+## Configuration
+
+Initialize the plugin with the `setup` function. The default configuration is shown below:
+
+```lua
+require("key-menu").setup({
+  -- Currently, no major options are required
+})
+```
+
+### vim options
+
+The popup delay is controlled by Neovim's built-in `timeoutlen` option.
+
+```lua
+-- Wait 300ms before showing the popup
 vim.o.timeoutlen = 300
+```
 
--- If you use <Space> as your mapping prefix, then this will make the key-menu
--- popup appear in Normal mode, after you press <Space>, after timeoutlen.
-require 'key-menu'.set('n', '<Space>')
+## Usage
 
--- Use the desc option to Vim's built-in vim.keymap.set to describe mappings.
-vim.keymap.set('n', '<Space>w', '<Cmd>w<CR>', {desc='Save'})
-vim.keymap.set('n', '<Space>q', '<Cmd>q<CR>', {desc='Quit'})
+### Registering the Menu
 
--- You can also pass Lua functions to vim.keymap.set.
-local erase_all_lines = function()
+To enable the key menu for a specific prefix (like your leader key), use `require("key-menu").set`. This acts as a wrapper around `vim.keymap.set` but attaches the menu behavior.
+
+```lua
+-- If <Space> is your leader key:
+require("key-menu").set("n", "<Space>")
+```
+
+Now, when you press `<Space>` and wait for `timeoutlen`, the menu will appear.
+
+### defining Mappings
+
+You define mappings as you normally would using `vim.keymap.set`. The `desc` field is used by `key-menu.nvim` to display the description.
+
+```lua
+-- Basic mapping
+vim.keymap.set("n", "<Space>w", "<Cmd>w<CR>", { desc = "Save" })
+vim.keymap.set("n", "<Space>q", "<Cmd>q<CR>", { desc = "Quit" })
+
+-- Lua callback
+local erase_all = function()
   vim.api.nvim_buf_set_lines(0, 0, -1, false, {})
 end
-vim.keymap.set('n', '<Space>k', erase_all_lines, {desc='Erase all'})
-
--- You can put mappings several keys deep, in a mapping group. For some kinds of
--- mappings, even if you don't include a description, key-menu will try to
--- render them nicely, for example by not showing the <Cmd> and <CR>.
-vim.keymap.set('n', '<Space>gs', '<Cmd>Git status<CR>')
-vim.keymap.set('n', '<Space>gc', '<Cmd>Git commit<CR>')
-
--- To describe the group of mappings under <Space>g, use key-menu.set.
-require 'key-menu'.set('n', '<Space>g', {desc='Git'})
-
--- The function key-menu.set is just a thin wrapper around vim.keymap.set, and
--- is provided for convenience so that you don't have to type the key sequence
--- twice. The above call to key-menu.set is equivalent to this:
-vim.keymap.set('n', '<Space>g',
-  function() require 'key-menu'.open_window('<Space>g') end,
-  {desc='Git'})
-
--- The arguments to key-menu.set are the same as those for vim.keymap.set,
--- except that the RHS/callback argument is omitted.
-
--- Create a buffer-local mapping group to echo some example text.
-require 'key-menu'.set('n', '<Space>s',
-  {desc = 'Say something', buffer = true})
--- Create buffer-local mappings to say hello and goodbye.
-vim.keymap.set('n', '<Space>sh',
-  function() print('Hello, world') end,
-  {desc = '...hello!', buffer = true})
-vim.keymap.set('n', '<Space>sg',
-  function() print('Goodbye, world!') end,
-  {desc = '...goodbye!', buffer = true})
-
--- Create a mapping that does not appear in the pop up menu.
-vim.keymap.set('n', '<leader>1', '<Cmd>BufferLineGoToBuffer 1<CR>', {desc='HIDDEN'})
+vim.keymap.set("n", "<Space>k", erase_all, { desc = "Erase Buffer" })
 ```
 
-Final results:
+### Mapping Groups
 
-![sample-config-root](https://user-images.githubusercontent.com/5308024/170115903-a10692a8-11b7-4f4b-9194-c958251772fb.png) ![sample-config-git](https://user-images.githubusercontent.com/5308024/170115928-cbd9cb25-eb13-49ee-9fa0-eab22d0f9fe3.png) ![sample-config-say](https://user-images.githubusercontent.com/5308024/170115942-1ab0d108-77e9-47ad-a019-c766fa26965f.png)
+You can group mappings under a prefix and give that prefix a name.
 
-## How it works
-
-The easiest way to understand how this plugin works is to run the following command interactively in Neovim:
-```
-:lua require 'key-menu'.open_window('g')
-```
-This opens a window showing your mappings that start with a `g`. You can press one of the keys in the popup menu to complete or advance the mapping.
-
-So, if we want to see hints for mappings starting with `g`, then all we have to do is make this window appear when we press `g`, like so:
 ```lua
-vim.keymap.set( -- define a new mapping
-  'n',          -- in Normal mode
-  'g',          -- which is bound to the 'g' key
-  function()    -- executing this function
-    require 'key-menu'.open_window('g')
-  end)
-```
-Now, when we press `g`, if we don't quickly press another key (within `timeoutlen`) to invoke a different mapping (like `gx` or `gc`), then _this_ mapping will be executed, which pops up the `key-menu` window.
+-- Define mappings under <Space>g
+vim.keymap.set("n", "<Space>gs", "<Cmd>Git status<CR>")
+vim.keymap.set("n", "<Space>gc", "<Cmd>Git commit<CR>")
 
-It's annoying that we have to say `'g'` twice, once in the arguments to `vim.keymap.set`, and once in the arguments to `open_window`. So `key-menu` provides a convenience function called `set`, which can be used like this:
-```lua
-require 'key-menu'.set( -- pop up a hint window
-  'n',                  -- in Normal mode
-  'g')                  -- when the letter g is pressed
+-- Register the group name with key-menu
+require("key-menu").set("n", "<Space>g", { desc = "Git" })
 ```
-This is the same as the `vim.keymap.set` in the previous code block.
 
-We can also use `desc` to configure the hint that is shown in the window. For example, suppose that we use `<Space>` as a leader key, and `<Space>g` for a collection of Git-related mappings. Then we might do:
+### Buffer-Local Mappings
+
+Pass `buffer = true` (or a buffer number) to create mappings specific to a buffer.
+
 ```lua
-require 'key-menu'.set('n', '<Space>')
-require 'key-menu'.set('n', '<Space>g', {desc='Git'})
+-- Create a buffer-local mapping group
+require("key-menu").set("n", "<Space>l", { desc = "LSP", buffer = true })
+
+vim.keymap.set("n", "<Space>ld", vim.lsp.buf.definition, { desc = "Go to Definition", buffer = true })
 ```
-Now a hint window will be shown if you press `<Space>`, with a `g → Git` entry.
+
+### Hiding Mappings
+
+If you have a mapping you don't want to show in the menu, set its description to `"HIDDEN"`.
+
+```lua
+vim.keymap.set("n", "<leader>1", "<Cmd>BufferLineGoToBuffer 1<CR>", { desc = "HIDDEN" })
+```
+
+## Built-in Mappings Support
+
+`key-menu.nvim` has experimental support for showing Neovim's built-in mappings (like those starting with `g`).
+
+```lua
+require("key-menu").set("n", "g")
+```
+
+![g-hint-window](https://user-images.githubusercontent.com/5308024/171311333-f911acea-edd2-4404-b63b-cf095f110e21.png)
 
 ## Highlighting
 
-Currently the `KeyMenuNormal` and `KeyMenuFloatBorder` highlight groups are supported, for the main body and the border of the floating window. Contributions are welcome to add more highlighting customizability.
+The window look can be customized using standard highlight groups.
 
-## *Experimental*: support for built-in mappings
+*   `KeyMenuNormal`: Background and text of the window.
+*   `KeyMenuFloatBorder`: Border of the window.
 
-We are in the process of adding support for Neovim's built-in commands. Follow [this issue](https://github.com/linty-org/key-menu.nvim/issues/7) for updates, or if you would like to contribute to this feature. To turn on key-menu.nvim hints for builtins starting with `g`, add this to your `init.lua`:
+Example:
 ```lua
-require 'key-menu'.set('n', 'g')
+vim.api.nvim_set_hl(0, "KeyMenuNormal", { link = "NormalFloat" })
+vim.api.nvim_set_hl(0, "KeyMenuFloatBorder", { link = "FloatBorder" })
 ```
 
-The `g` hint window will look something like this: ![g-hint-window](https://user-images.githubusercontent.com/5308024/171311333-f911acea-edd2-4404-b63b-cf095f110e21.png)
+## Parent
 
-## Related plugins
+This plugin was forked from [emmanueltouzery/key-menu.nvim](https://github.com/emmanueltouzery/key-menu.nvim) and heavily modified.
 
-- [folke/which-key.nvim](https://github.com/folke/which-key.nvim)
-- [spinks/vim-leader-guide](https://github.com/spinks/vim-leader-guide)
-- [lifepillar/vim-cheat40](https://github.com/lifepillar/vim-cheat40)
-- [hecal3/vim-leader-guide](https://github.com/hecal3/vim-leader-guide)
-- [liuchengxu/vim-which-key](https://github.com/liuchengxu/vim-which-key)
+## Alternative Plugins
+
+*   [folke/which-key.nvim](https://github.com/folke/which-key.nvim) - A popular, highly configurable alternative.
