@@ -5,6 +5,19 @@ local keys = require('key-menu.keys')
 local view = require('key-menu.view')
 local state = require('key-menu.state')
 
+local function set_default_highlights()
+  vim.api.nvim_set_hl(0, 'KeyMenuNormal', { link = 'NormalFloat', default = true })
+  vim.api.nvim_set_hl(0, 'KeyMenuFloatBorder', { link = 'FloatBorder', default = true })
+end
+
+set_default_highlights()
+
+local hl_group = vim.api.nvim_create_augroup('KeyMenuHighlights', { clear = true })
+vim.api.nvim_create_autocmd('ColorScheme', {
+  group = hl_group,
+  callback = set_default_highlights,
+})
+
 local M = {}
 
 ---Map a key to No-Op in the buffer.
