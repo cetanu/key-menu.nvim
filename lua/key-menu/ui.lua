@@ -5,9 +5,14 @@ local keys = require('key-menu.keys')
 local view = require('key-menu.view')
 local state = require('key-menu.state')
 
+local ns_id = vim.api.nvim_create_namespace('key-menu')
+
 local function set_default_highlights()
   vim.api.nvim_set_hl(0, 'KeyMenuNormal', { link = 'NormalFloat', default = true })
   vim.api.nvim_set_hl(0, 'KeyMenuFloatBorder', { link = 'FloatBorder', default = true })
+  vim.api.nvim_set_hl(0, 'KeyMenuKeystroke', { link = 'Statement', default = true })
+  vim.api.nvim_set_hl(0, 'KeyMenuDescription', { link = 'Normal', default = true })
+  vim.api.nvim_set_hl(0, 'KeyMenuHeader', { link = 'PmenuSel', default = true })
 end
 
 set_default_highlights()
@@ -178,6 +183,7 @@ function M.open_window(prefix)
     end
 
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, {})
+    vim.api.nvim_buf_clear_namespace(buf, ns_id, 0, -1)
     vim.api.nvim_win_set_config(win, {width = width, height = num_rows + 2})
 
     local blank_lines = {}
@@ -203,9 +209,13 @@ function M.open_window(prefix)
         local description_start = sep_end + 1
         local description_end = description_start + description_width - 1
 
-        vim.api.nvim_buf_set_text(buf, row_num + row_offset, description_start-1, row_num + row_offset, description_end, {item.description})
-        vim.api.nvim_buf_set_text(buf, row_num + row_offset, sep_start-1, row_num + row_offset, sep_end, {sep})
-        vim.api.nvim_buf_set_text(buf, row_num + row_offset, keystroke_start-1, row_num + row_offset, keystroke_end, {item.keystroke})
+        local line = row_num + row_offset
+        vim.api.nvim_buf_set_text(buf, line, description_start-1, line, description_end, {item.description})
+        vim.api.nvim_buf_set_text(buf, line, sep_start-1, line, sep_end, {sep})
+        vim.api.nvim_buf_set_text(buf, line, keystroke_start-1, line, keystroke_end, {item.keystroke})
+
+        vim.api.nvim_buf_add_highlight(buf, ns_id, 'KeyMenuDescription', line, description_start-1, description_end)
+        vim.api.nvim_buf_add_highlight(buf, ns_id, 'KeyMenuKeystroke', line, keystroke_start-1, keystroke_end)
       end
     else
       vim.api.nvim_buf_set_text(buf, 1 + row_offset, horizontal_padding, 1 + row_offset, horizontal_padding + vim.api.nvim_strwidth(no_mappings_string), {no_mappings_string})
@@ -213,10 +223,12 @@ function M.open_window(prefix)
 
     if anchor == 'NW' then
       vim.api.nvim_buf_set_lines(buf, 0, 1, false, {pretty_keystrokes_so_far})
+      vim.api.nvim_buf_add_highlight(buf, ns_id, 'KeyMenuHeader', 0, 0, -1)
       vim.api.nvim_buf_set_lines(buf, 1, 2, false, {string.rep('─', width)})
       vim.fn.setcursorcharpos(1, cursor_col)
     else
       vim.api.nvim_buf_set_lines(buf, -2, -1, false, {pretty_keystrokes_so_far})
+      vim.api.nvim_buf_add_highlight(buf, ns_id, 'KeyMenuHeader', num_rows + 1, 0, -1)
       vim.api.nvim_buf_set_lines(buf, -3, -2, false, {string.rep('─', width)})
       vim.fn.setcursorcharpos(num_rows + 2, cursor_col)
     end
