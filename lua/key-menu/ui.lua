@@ -21,7 +21,7 @@ local function shadow_all_global_mappings(buf)
   local chars = 'abcdefghijklmnopqrstuvwxyz'
              .. 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
              .. '0123456789'
-             .. '~!#$%^&*()_+`-=[]{}|\;"\'<>.,?/'
+             .. '~!#$%^&*()_+`-=[]{}|\\;"\'<>,.?/'
 
   for i = 1, #chars do
     local char = chars:sub(i, i)
